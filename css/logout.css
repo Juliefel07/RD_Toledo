@@ -1,0 +1,97 @@
+.logout{
+    float: right;
+    background:#dc3545;
+    color:#fff;
+    padding:10px 18px;
+    text-decoration:none;
+    border-radius:5px;
+    font-size:14px;
+    font-weight:600;
+    transition:0.3s;
+}
+
+.logout:hover{
+    background:#00509e;
+}
+
+/* Background */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+}
+
+/* Modal Box */
+
+.modal-content{
+    background:#fff;
+    width:350px;
+    border-radius:12px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+
+    animation:popup .25s ease;
+}
+
+.modal-content h2{
+    color:#003366;
+    margin-bottom:10px;
+}
+
+.modal-content p{
+    color:#666;
+    margin-bottom:25px;
+}
+
+/* Buttons */
+
+.modal-buttons{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+}
+
+.cancel-btn{
+    border:none;
+    background:#ccc;
+    color:#333;
+    padding:10px 18px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.confirm-btn{
+    background:#dc3545;
+    color:#fff;
+    padding:10px 18px;
+    border-radius:6px;
+    text-decoration:none;
+}
+
+.cancel-btn:hover{
+    background:#bbb;
+}
+
+.confirm-btn:hover{
+    background:#b02a37;
+}
+
+@keyframes popup{
+
+    from{
+        transform:scale(.8);
+        opacity:0;
+    }
+
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+
+}
