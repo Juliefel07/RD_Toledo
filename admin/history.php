@@ -19,16 +19,20 @@ SELECT q.*, s.service_name
 
 FROM queue q
 
-JOIN services s 
+JOIN services s
 ON q.service_id = s.service_id
 
-WHERE q.status='Completed'
-
+WHERE q.status IN ('Completed', 'Cancelled', 'Unavailable')
 AND q.completed_by='$admin_id'
 
-ORDER BY q.completed_at DESC
+ORDER BY
+CASE
+    WHEN q.status='Completed' THEN q.completed_at
+    WHEN q.status='Cancelled' THEN q.cancelled_at
+END DESC
 
 ");
+
 
 ?>
 
@@ -38,7 +42,7 @@ ORDER BY q.completed_at DESC
 
 <head>
 
-<title>My Completed Clients</title>
+<title>Clients History</title>
 
 
 <style>
@@ -69,7 +73,23 @@ body{
 }
 
 
+.badge-completed{
+    display:inline-block;
+    background:#28a745;
+    color:white;
+    padding:7px 14px;
+    border-radius:7px;
+    font-weight:bold;
+}
 
+.badge-cancelled{
+    display:inline-block;
+    background:#dc3545;
+    color:white;
+    padding:7px 14px;
+    border-radius:5px;
+    font-weight:bold;
+}
 
 
 .header{
@@ -319,7 +339,7 @@ tr:hover{
 
 <h1>
 
-My Completed Clients
+Clients History
 
 </h1>
 
@@ -367,7 +387,7 @@ Window <?= htmlspecialchars($_SESSION['window_no']); ?>
 <th>Status</th>
 
 <th>Completed At</th>
-
+<th>Date</th>
 </tr>
 
 
@@ -462,11 +482,18 @@ Regular
 <td>
 
 
-<span class="badge">
+<td>
+<?php if($row['status']=="Completed"){ ?>
 
-Completed
+    <span class="badge-completed">Completed</span>
 
-</span>
+<?php } elseif($row['status']=="Cancelled"){ ?>
+
+    <span class="badge-cancelled">Unavailable</span>
+
+<?php } ?>
+
+</td>
 
 
 </td>
@@ -479,12 +506,23 @@ Completed
 
 <td>
 
+<?php
 
-<?= date(
-"F j, Y • g:i A",
-strtotime($row['completed_at'])
-); ?>
+if(!empty($row['completed_at']) &&
+   $row['completed_at'] != '0000-00-00 00:00:00'){
 
+    echo date(
+        "F j, Y • g:i A",
+        strtotime($row['completed_at'])
+    );
+
+}else{
+
+    echo "<span style='color:#999;'>-</span>";
+
+}
+
+?>
 
 </td>
 
@@ -534,7 +572,7 @@ No completed clients yet.
 
 <a href="dashboard.php" class="btn-back">
 
-← Back to Dashboard
+Back to Dashboard
 
 </a>
 

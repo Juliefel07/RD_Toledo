@@ -1,40 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>RD Toledo Login</title>
-    <link rel="stylesheet" href="css/login.css">
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RD Toledo | Admin Login</title>
+
+<link rel="stylesheet" href="css/login.css">
+
 </head>
+
 <body>
 
-<div class="login-box">
+<div class="background"></div>
 
-<h1>RD Toledo</h1>
+<div class="login-container">
 
-<h3>Admin Login</h3>
+    <div class="login-box">
 
-<form action="login_process.php" method="POST">
+    <div class="logo-container">
 
-<input
-type="text"
-name="username"
-placeholder="Username"
-required>
+        <img src="images/logo.png" alt="RD Toledo Logo">
 
-<input
-type="password"
-name="password"
-placeholder="Password"
-required>
+    </div>
 
-<button type="submit">
+        <h1>RD Toledo</h1>
 
-Login
+        <p class="subtitle">
+            Queue Management System
+        </p>
 
-</button>
+        <h3>Administrator Login</h3>
 
-</form>
+        <form action="login_process.php" method="POST">
+
+            <div class="input-group">
+
+                <label>Username</label>
+
+                <input
+                type="text"
+                name="username"
+                placeholder="Enter username"
+                required>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Password</label>
+
+                <input
+                type="password"
+                name="password"
+                placeholder="Enter password"
+                required>
+
+            </div>
+
+            <button type="submit">
+
+                Login
+
+            </button>
+
+        </form>
+
+    </div>
 
 </div>
 
 </body>
+
 </html>

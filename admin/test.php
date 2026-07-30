@@ -280,7 +280,10 @@ tr:hover{
 /* BADGES */
 
 .badge-senior{
-    color:#dc3545;
+
+    background:#dc3545;
+
+    color:white;
 
     padding:6px 12px;
 
@@ -294,7 +297,9 @@ tr:hover{
 
 .badge-pwd{
 
-    color:#17a2b8;
+    background:#17a2b8;
+
+    color:white;
 
     padding:6px 12px;
 
@@ -308,7 +313,9 @@ tr:hover{
 
 .badge-pregnant{
 
-    color:#e83e8c;
+    background:#e83e8c;
+
+    color:white;
 
     padding:6px 12px;
 
@@ -322,7 +329,9 @@ tr:hover{
 
 .badge-regular{
 
-    color:#6c757d;
+    background:#6c757d;
+
+    color:white;
 
     padding:6px 12px;
 
@@ -614,19 +623,19 @@ switch($row['senior_citizen']){
 
     case "Senior Citizen":
 
-        echo '<span class="badge-senior">Senior Citizen</span>';
+        echo '<span class="badge-senior">👴 Senior Citizen</span>';
 
         break;
 
     case "PWD":
 
-        echo '<span class="badge-pwd">PWD</span>';
+        echo '<span class="badge-pwd">♿ PWD</span>';
 
         break;
 
     case "Pregnant":
 
-        echo '<span class="badge-pregnant">Pregnant</span>';
+        echo '<span class="badge-pregnant">🤰 Pregnant</span>';
 
         break;
 
@@ -703,9 +712,9 @@ $row['window_no']==$_SESSION['window_no']
 
 <!-- Complete -->
 <a
-href="#"
+href="complete.php?id=<?= $row['queue_id']; ?>"
 class="btn-complete"
-onclick="openCompleteModal(<?= $row['queue_id']; ?>)">
+onclick="return confirm('Complete this transaction?');">
 
 Complete
 
@@ -716,9 +725,9 @@ Complete
 
 <!-- Payment -->
 <a
-href="#"
+href="payment.php?id=<?= $row['queue_id']; ?>"
 class="btn-payment"
-onclick="openPaymentModal(<?= $row['queue_id']; ?>)">
+onclick="return confirm('Send this client to Window 4 for payment?');">
 
 Payment
 
@@ -728,9 +737,9 @@ Payment
 
 <!-- Unavailable -->
 <a
-href="#"
+href="decline.php?id=<?= $row['queue_id']; ?>"
 class="btn-decline"
-onclick="openDeclineModal(<?= $row['queue_id']; ?>)">
+onclick="return confirm('Mark this client as unavailable?');">
 
 Unavailable
 
@@ -991,114 +1000,11 @@ Logout
 </div>
 
 
-<div id="paymentModal" class="modal">
-
-    <div class="modal-content">
-
-        <h2>Send to Payment</h2>
-
-        <p>
-
-            Send this client to Window 4 for payment?
-
-        </p>
-
-        <div class="modal-buttons">
-
-            <button
-                class="cancel-btn"
-                onclick="closePaymentModal()">
-
-                Cancel
-
-            </button>
-
-            <a
-                id="confirmPaymentBtn"
-                href="#"
-                class="confirm-btn">
-
-                Continue
-
-            </a>
-
-        </div>
-
-    </div>
-
-</div>
 
 
-<div id="declineModal" class="modal">
 
-    <div class="modal-content">
 
-        <h2>Unavailable Client</h2>
 
-        <p>
-            Are you sure you want to mark this client as unavailable?
-        </p>
-
-        <div class="modal-buttons">
-
-            <button
-                class="cancel-btn"
-                onclick="closeDeclineModal()">
-
-                Cancel
-
-            </button>
-
-            <a
-                id="confirmDeclineBtn"
-                href="#"
-                class="confirm-btn">
-
-                Yes, Continue
-
-            </a>
-
-        </div>
-
-    </div>
-
-</div>
-<div id="completeModal" class="modal">
-
-    <div class="modal-content">
-
-        <h2>Complete Transaction</h2>
-
-        <p>
-
-            Are you sure you want to complete this transaction?
-
-        </p>
-
-        <div class="modal-buttons">
-
-            <button
-                class="cancel-btn"
-                onclick="closeCompleteModal()">
-
-                Cancel
-
-            </button>
-
-            <a
-                id="confirmCompleteBtn"
-                href="#"
-                class="confirm-btn">
-
-                Complete
-
-            </a>
-
-        </div>
-
-    </div>
-
-</div>
 <script>
 
 
@@ -1120,65 +1026,17 @@ document.getElementById("logoutModal").style.display="none";
 
 window.onclick=function(event){
 
-    let logoutModal = document.getElementById("logoutModal");
-    let declineModal = document.getElementById("declineModal");
+let modal=document.getElementById("logoutModal");
 
-    if(event.target===logoutModal){
 
-        closeLogoutModal();
+if(event.target===modal){
 
-    }
-
-    if(event.target===declineModal){
-
-        closeDeclineModal();
-
-    }
-
-}
-function openDeclineModal(queueId){
-
-    document.getElementById("confirmDeclineBtn").href =
-        "decline.php?id=" + queueId;
-
-    document.getElementById("declineModal").style.display = "flex";
+closeLogoutModal();
 
 }
 
-function closeDeclineModal(){
-
-    document.getElementById("declineModal").style.display = "none";
-
-}
-function openCompleteModal(id){
-
-    document.getElementById("confirmCompleteBtn").href =
-        "complete.php?id=" + id;
-
-    document.getElementById("completeModal").style.display="flex";
-
 }
 
-function closeCompleteModal(){
-
-    document.getElementById("completeModal").style.display="none";
-
-}
-
-function openPaymentModal(id){
-
-    document.getElementById("confirmPaymentBtn").href =
-        "payment.php?id=" + id;
-
-    document.getElementById("paymentModal").style.display="flex";
-
-}
-
-function closePaymentModal(){
-
-    document.getElementById("paymentModal").style.display="none";
-
-}
 
 </script>
 

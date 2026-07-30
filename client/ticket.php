@@ -1,21 +1,26 @@
 <?php
-
 require_once("../includes/db.php");
 
-$id = $_GET['id'];
+if (!isset($_GET['id']) || empty($_GET['id'])) {
+    die("Invalid ticket. No queue ID provided.");
+}
+
+$id = intval($_GET['id']);
 
 $sql = mysqli_query($conn,"
 SELECT q.*, s.service_name
 FROM queue q
 JOIN services s
-ON q.service_id=s.service_id
-WHERE q.queue_id='$id'
+ON q.service_id = s.service_id
+WHERE q.queue_id = '$id'
 ");
 
+if(mysqli_num_rows($sql) == 0){
+    die("Queue ticket not found.");
+}
+
 $row = mysqli_fetch_assoc($sql);
-
 ?>
-
 <!DOCTYPE html>
 <html>
 
@@ -428,7 +433,7 @@ QUEUE NUMBER
 
 <div class="queue">
 
-<?= htmlspecialchars($row['queue_number']); ?>
+<?= htmlspecialchars($row['queue_number'] ?? 'N/A'); ?>
 
 </div>
 

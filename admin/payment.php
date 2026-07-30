@@ -8,14 +8,13 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once("../includes/db.php");
 
-$admin_id = $_SESSION['user_id'];
 $id = intval($_GET['id']);
 
 mysqli_query($conn,"
 UPDATE queue
 SET
-    status='Unavailable',
-    completed_at = NOW()
+    status='Payment',
+    window_no='4'
 WHERE queue_id='$id'
 ");
 

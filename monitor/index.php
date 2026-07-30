@@ -24,7 +24,7 @@ LIMIT 5
 <head>
     <title>RD_Toledo Monitor</title>
 
-    <meta http-equiv="refresh" content="3">
+
 
     <style>
 
@@ -83,8 +83,7 @@ LIMIT 5
 
 <div class="now">
 
-<table style="margin:auto; width:80%; border-collapse:collapse;">
-
+<table id="servingTable" style="margin:auto; width:80%; border-collapse:collapse;">
 <tr style="background:#003366;">
     <th style="padding:15px;">Window</th>
     <th style="padding:15px;">Now Serving</th>
@@ -130,7 +129,7 @@ if(mysqli_num_rows($sql) > 0){
 
 <h2>Next Clients</h2>
 
-<table>
+<table id="nextTable">
 
 <?php
 
@@ -147,5 +146,129 @@ echo "<tr><td>".htmlspecialchars($row['client_name'])."</td></tr>";
 
 </div>
 
+<script>
+
+
+
+
+</script>
+<script>
+
+async function loadMonitor(){
+
+    const response = await fetch("monitor_data.php");
+    const data = await response.json();
+
+    /* ==========================
+       NOW SERVING
+    ========================== */
+
+    const servingTable = document.getElementById("servingTable");
+
+    servingTable.innerHTML = `
+        <tr style="background:#003366;">
+            <th style="padding:15px;">Window</th>
+            <th style="padding:15px;">Now Serving</th>
+        </tr>
+    `;
+
+    if(data.serving.length==0){
+
+        servingTable.innerHTML += `
+            <tr>
+                <td colspan="2" style="padding:30px;font-size:40px;">
+                    Waiting...
+                </td>
+            </tr>
+        `;
+
+    }else{
+
+        data.serving.forEach(client=>{
+
+            servingTable.innerHTML += `
+                <tr>
+                    <td style="padding:20px;font-size:40px;">
+                        Window ${client.window_no}
+                    </td>
+
+                    <td style="padding:20px;font-size:45px;color:yellow;font-weight:bold;">
+                        ${client.client_name}
+                    </td>
+                </tr>
+            `;
+
+        });
+
+    }
+
+
+    /* ==========================
+       NEXT CLIENTS
+    ========================== */
+
+    const nextTable = document.getElementById("nextTable");
+
+    nextTable.innerHTML="";
+
+    if(data.next.length==0){
+
+        nextTable.innerHTML=`
+            <tr>
+                <td>No waiting clients</td>
+            </tr>
+        `;
+
+    }else{
+
+        data.next.forEach(client=>{
+
+            nextTable.innerHTML += `
+                <tr>
+                    <td>${client.client_name}</td>
+                </tr>
+            `;
+
+        });
+
+    }
+
+}
+
+loadMonitor();
+
+setInterval(loadMonitor,1000);
+
+</script>
+<script>
+async function checkAnnouncement() {
+
+    const response = await fetch("announcement_data.php");
+    const data = await response.json();
+
+    console.log("Received:", data);
+
+    if (!data) return;
+
+   speechSynthesis.cancel();
+
+setTimeout(() => {
+    const speech = new SpeechSynthesisUtterance(
+        `${data.client_name}, please proceed to Window ${data.window_no}.`
+    );
+
+    speech.lang = "en-US";
+    speech.rate = 0.8;
+    speech.pitch = 1;
+    speech.volume = 1;
+
+    speechSynthesis.speak(speech);
+}, 200);
+}
+
+checkAnnouncement();
+setInterval(checkAnnouncement,1000);
+
+</script>
 </body>
 </html>

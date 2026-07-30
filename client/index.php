@@ -376,36 +376,41 @@ required>
 
 
 
-
 <label>
 
-Senior Citizen?
+Priority Lane
 
 </label>
 
-
 <div class="senior-box">
-
 
 <select name="senior_citizen" required>
 
-
 <option value="No">
 
-No
+Regular Lane
 
 </option>
 
+<option value="Senior Citizen">
 
-<option value="Yes">
-
-Yes
+Senior Citizen
 
 </option>
 
+<option value="PWD">
+
+PWD (Person with Disability)
+
+</option>
+
+<option value="Pregnant">
+
+Pregnant
+
+</option>
 
 </select>
-
 
 </div>
 
