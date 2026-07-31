@@ -15,7 +15,8 @@ mysqli_query($conn,"
 UPDATE queue
 SET
     status='Unavailable',
-    completed_at = NOW()
+    cancelled_at=NOW(),
+    completed_by='$admin_id'
 WHERE queue_id='$id'
 ");
 

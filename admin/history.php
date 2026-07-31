@@ -12,30 +12,20 @@ require_once("../includes/db.php");
 
 $admin_id = $_SESSION['user_id'];
 
-
 $result = mysqli_query($conn, "
-
 SELECT q.*, s.service_name
-
 FROM queue q
-
 JOIN services s
 ON q.service_id = s.service_id
-
-WHERE q.status IN ('Completed', 'Cancelled', 'Unavailable')
+WHERE q.status IN ('Completed','Unavailable')
 AND q.completed_by='$admin_id'
-
 ORDER BY
 CASE
     WHEN q.status='Completed' THEN q.completed_at
-    WHEN q.status='Cancelled' THEN q.cancelled_at
+    WHEN q.status='Unavailable' THEN q.cancelled_at
 END DESC
-
 ");
-
-
 ?>
-
 
 <!DOCTYPE html>
 <html>
@@ -387,7 +377,7 @@ Window <?= htmlspecialchars($_SESSION['window_no']); ?>
 <th>Status</th>
 
 <th>Completed At</th>
-<th>Date</th>
+
 </tr>
 
 
@@ -479,7 +469,7 @@ Regular
 
 
 
-<td>
+
 
 
 <td>
@@ -487,16 +477,18 @@ Regular
 
     <span class="badge-completed">Completed</span>
 
-<?php } elseif($row['status']=="Cancelled"){ ?>
+<?php } elseif($row['status']=="Unavailable"){ ?>
 
     <span class="badge-cancelled">Unavailable</span>
+
+<?php } elseif($row['status']=="Cancelled"){ ?>
+
+    <span class="badge-cancelled">Cancelled</span>
 
 <?php } ?>
 
 </td>
 
-
-</td>
 
 
 
@@ -508,24 +500,23 @@ Regular
 
 <?php
 
-if(!empty($row['completed_at']) &&
-   $row['completed_at'] != '0000-00-00 00:00:00'){
+$date = "";
 
-    echo date(
-        "F j, Y • g:i A",
-        strtotime($row['completed_at'])
-    );
+if($row['status']=="Completed"){
+    $date = $row['completed_at'];
+}else if($row['status']=="Unavailable"){
+    $date = $row['cancelled_at'];
+}
 
+if(!empty($date)){
+    echo date("F j, Y • g:i A", strtotime($date));
 }else{
-
-    echo "<span style='color:#999;'>-</span>";
-
+    echo "-";
 }
 
 ?>
 
 </td>
-
 
 
 

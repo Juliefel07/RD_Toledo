@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>TTS Test</h1>
+
+<button onclick="test()">Speak</button>
+
+<script>
+function test() {
+    alert("SpeechSynthesis supported: " + ('speechSynthesis' in window));
+
+    const msg = new SpeechSynthesisUtterance("Hello. This is a speech test.");
+
+    msg.onstart = () => alert("Speech started");
+    msg.onend = () => alert("Speech finished");
+    msg.onerror = (e) => alert("Speech error: " + e.error);
+
+    speechSynthesis.speak(msg);
+}
+</script>
+
+</body>
+</html>

@@ -12,19 +12,20 @@ $window = $_SESSION['window_no'];
 
 if($window == 4){
 
-    $result = mysqli_query($conn,"
-    SELECT q.*, s.service_name
-    FROM queue q
-    JOIN services s
-    ON q.service_id=s.service_id
-    WHERE
-        q.status='Payment'
-        OR (
-            q.status='Serving'
-            AND q.window_no='4'
-        )
-    ORDER BY q.queue_id ASC
-    ");
+$result = mysqli_query($conn,"
+SELECT q.*, s.service_name
+FROM queue q
+JOIN services s
+ON q.service_id = s.service_id
+WHERE
+    q.status='Waiting'
+    OR q.status='Payment'
+    OR (
+        q.status='Serving'
+        AND q.window_no='4'
+    )
+ORDER BY q.queue_id ASC
+");
 
 }else{
 
@@ -665,7 +666,7 @@ switch($row['senior_citizen']){
 
 <?php
 if (
-    ($window != 4 && $row['status']=="Waiting") ||
+    $row['status']=="Waiting" ||
     ($window == 4 && $row['status']=="Payment")
 ){
 ?>
@@ -689,54 +690,29 @@ Call
 
 
 <?php
-
 if(
-$row['status']=="Serving" &&
-$row['window_no']==$_SESSION['window_no']
-)
-
-{
-
+    $row['status']=="Serving" &&
+    $row['window_no']==$_SESSION['window_no']
+){
 ?>
 
-
-
-<!-- Complete -->
-<a
-href="#"
+<a href="#"
 class="btn-complete"
 onclick="openCompleteModal(<?= $row['queue_id']; ?>)">
-
 Complete
-
 </a>
 
-<!-- Payment -->
-<?php if($_SESSION['window_no'] != 4){ ?>
-
-<!-- Payment -->
-<a
-href="#"
+<a href="#"
 class="btn-payment"
 onclick="openPaymentModal(<?= $row['queue_id']; ?>)">
-
 Payment
-
 </a>
 
-<?php } ?>
-
-<!-- Unavailable -->
-<a
-href="#"
+<a href="#"
 class="btn-decline"
 onclick="openDeclineModal(<?= $row['queue_id']; ?>)">
-
 Unavailable
-
 </a>
-
-
 
 <?php } ?>
 
@@ -766,19 +742,20 @@ MOBILE CARDS
 
 if($window == 4){
 
-    $mobileResult = mysqli_query($conn,"
-    SELECT q.*, s.service_name
-    FROM queue q
-    JOIN services s
-    ON q.service_id=s.service_id
-    WHERE
-        q.status='Payment'
-        OR (
-            q.status='Serving'
-            AND q.window_no='4'
-        )
-    ORDER BY q.queue_id ASC
-    ");
+$mobileResult = mysqli_query($conn,"
+SELECT q.*, s.service_name
+FROM queue q
+JOIN services s
+ON q.service_id = s.service_id
+WHERE
+    q.status='Waiting'
+    OR q.status='Payment'
+    OR (
+        q.status='Serving'
+        AND q.window_no='4'
+    )
+ORDER BY q.queue_id ASC
+");
 
 }else{
 
@@ -866,10 +843,7 @@ switch($row['senior_citizen']){
 <div class="card-actions">
 
 <?php
-if (
-    ($window != 4 && $row['status']=="Waiting") ||
-    ($window == 4 && $row['status']=="Payment")
-){
+if ($row['status']=="Waiting" || $row['status']=="Payment") {
 ?>
 
 <form action="call.php" method="POST" style="display:inline; width:100%;">
@@ -1181,7 +1155,11 @@ function closePaymentModal(){
 }
 
 </script>
-
+<script>
+setInterval(function () {
+    location.reload();
+}, 2000); // Refresh every 2 seconds
+</script>
 
 
 </body>

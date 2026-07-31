@@ -28,48 +28,93 @@ LIMIT 5
 
     <style>
 
-    body{
-        margin:0;
-        background:#0A2342;
-        color:white;
-        font-family:Arial;
-        text-align:center;
-    }
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
 
-    h1{
-        font-size:60px;
-        margin-top:30px;
-    }
+body{
+    background:#0A2342;
+    color:white;
+    height:100vh;
+    overflow:hidden;
+}
 
-    .now{
-        font-size:80px;
-        margin-top:40px;
-        color:yellow;
-        font-weight:bold;
-    }
+h1{
+    text-align:center;
+    font-size:60px;
+    padding:20px 0;
+    letter-spacing:2px;
+}
 
-    .window{
-        font-size:50px;
-        margin-top:20px;
-    }
+.monitor{
+    display:flex;
+    height:calc(100vh - 110px);
+}
 
-    .next{
-        margin-top:70px;
-        font-size:35px;
-    }
+.left{
+    width:35%;
+    padding:25px;
+    height: 150%;
+    background:#0F315A;
+    border-right:5px solid #FFD700;
+}
 
-    table{
-        margin:auto;
-        margin-top:20px;
-        width:50%;
-        border-collapse:collapse;
-    }
+.right{
+    width:65%;
+    padding:25px;
+}
 
-    td{
-        padding:15px;
-        border:1px solid white;
-        font-size:28px;
-    }
+.section-title{
+    text-align:center;
+    font-size:40px;
+    margin-bottom:25px;
+    color:#FFD700;
+}
+
+#nextTable,
+#servingTable{
+    width:100%;
+    border-collapse:collapse;
+}
+
+#nextTable td{
+    font-size:34px;
+    padding:8px;
+    border-bottom:2px solid rgba(255,255,255,.2);
+}
+
+#servingTable th{
+    background:#003366;
+    padding:8px;
+    font-size:30px;
+}
+
+#servingTable td{
+    padding:22px;
+    font-size:38px;
+    border-bottom:2px solid rgba(255,255,255,.15);
+}
+
+.window{
+    width:220px;
+    min-width:220px;
+    max-width:220px;
+    font-size:38px;
+    font-weight:bold;
+    text-align:left;
+    white-space:nowrap;
+}
+
+.client{
+    color:#FFD700;
+    font-size:46px;
+    font-weight:bold;
+    text-align:right;
+    padding-left:40px;
+}
 
     </style>
 
@@ -77,57 +122,86 @@ LIMIT 5
 
 <body>
 
-<h1>RD TOLEDO</h1>
+<div class="monitor">
 
-<h2>NOW SERVING</h2>
+    <!-- LEFT SIDE -->
+    <div class="left">
 
-<div class="now">
+        <div class="section-title">
+            NEXT CLIENTS
+        </div>
 
-<table id="servingTable" style="margin:auto; width:80%; border-collapse:collapse;">
-<tr style="background:#003366;">
-    <th style="padding:15px;">Window</th>
-    <th style="padding:15px;">Now Serving</th>
-</tr>
+        <table id="nextTable">
 
-<?php
-mysqli_data_seek($sql, 0);
+        <?php while($row=mysqli_fetch_assoc($next)){ ?>
 
-if(mysqli_num_rows($sql) > 0){
+            <tr>
+                <td><?= htmlspecialchars($row['client_name']); ?></td>
+            </tr>
 
-    while($current = mysqli_fetch_assoc($sql)){
-?>
+        <?php } ?>
 
-<tr>
-    <td style="padding:20px;font-size:40px;">
-        Window <?= htmlspecialchars($current['window_no']); ?>
-    </td>
+        </table>
 
-    <td style="padding:20px;font-size:45px;color:yellow;font-weight:bold;">
-        <?= htmlspecialchars($current['client_name']); ?>
-    </td>
-</tr>
+    </div>
 
-<?php
-    }
+    <!-- RIGHT SIDE -->
+    <div class="right">
 
-}else{
-?>
+        <div class="section-title">
+            NOW SERVING
+        </div>
 
-<tr>
-    <td colspan="2" style="padding:30px;font-size:40px;">
-        Waiting...
-    </td>
-</tr>
+        <table id="servingTable">
 
-<?php } ?>
+            <tr>
+                <th>Window</th>
+                <th>Client</th>
+            </tr>
 
-</table>
+            <?php
+            mysqli_data_seek($sql,0);
+
+            if(mysqli_num_rows($sql)>0){
+
+                while($current=mysqli_fetch_assoc($sql)){
+            ?>
+
+            <tr>
+
+                <td class="window">
+                    Window <?= htmlspecialchars($current['window_no']); ?>
+                </td>
+
+                <td class="client">
+                    <?= htmlspecialchars($current['client_name']); ?>
+                </td>
+
+            </tr>
+
+            <?php
+                }
+
+            }else{
+            ?>
+
+            <tr>
+                <td colspan="2" style="text-align:center;font-size:40px;">
+                    Waiting...
+                </td>
+            </tr>
+
+            <?php } ?>
+
+        </table>
+
+    </div>
 
 </div>
 
 <div class="next">
 
-<h2>Next Clients</h2>
+
 
 <table id="nextTable">
 
@@ -188,13 +262,13 @@ async function loadMonitor(){
 
             servingTable.innerHTML += `
                 <tr>
-                    <td style="padding:20px;font-size:40px;">
-                        Window ${client.window_no}
-                    </td>
+<td class="window">
+    Window ${client.window_no}
+</td>
 
-                    <td style="padding:20px;font-size:45px;color:yellow;font-weight:bold;">
-                        ${client.client_name}
-                    </td>
+<td class="client">
+    ${client.client_name}
+</td>
                 </tr>
             `;
 
@@ -223,11 +297,11 @@ async function loadMonitor(){
 
         data.next.forEach(client=>{
 
-            nextTable.innerHTML += `
-                <tr>
-                    <td>${client.client_name}</td>
-                </tr>
-            `;
+           nextTable.innerHTML += `
+<tr>
+    <td>${client.client_name}</td>
+</tr>
+`;
 
         });
 
@@ -241,6 +315,9 @@ setInterval(loadMonitor,1000);
 
 </script>
 <script>
+    
+console.log("SpeechSynthesis:", window.speechSynthesis);
+console.log("Voices:", speechSynthesis.getVoices());
 async function checkAnnouncement() {
 
     const response = await fetch("announcement_data.php");
