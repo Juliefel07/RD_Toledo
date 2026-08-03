@@ -29,19 +29,23 @@ ORDER BY q.queue_id ASC
 
 }else{
 
-    $result = mysqli_query($conn,"
-    SELECT q.*, s.service_name
-    FROM queue q
-    JOIN services s
-    ON q.service_id=s.service_id
-    WHERE
-        q.status='Waiting'
-        OR (
-            q.status='Serving'
-            AND q.window_no='$window'
-        )
-    ORDER BY q.queue_id ASC
-    ");
+$result = mysqli_query($conn,"
+SELECT q.*, s.service_name
+FROM queue q
+JOIN services s
+ON q.service_id=s.service_id
+WHERE
+(
+    q.status='Waiting'
+    AND q.window_no='$window'
+)
+OR
+(
+    q.status='Serving'
+    AND q.window_no='$window'
+)
+ORDER BY q.queue_id ASC
+");
 
 }
 ?>
@@ -278,6 +282,25 @@ tr:hover{
 
 }
 
+.btn-transfer{
+
+    padding:10px 16px;
+
+    border-radius:8px;
+
+    border:1px solid #003366;
+
+    background:white;
+
+    color:#003366;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    margin:2px;
+
+}
 /* BADGES */
 
 .badge-senior{
@@ -458,6 +481,9 @@ tr:hover{
 
     }
 
+    audio{
+    display:none;
+}
     .top-buttons{
 
         width:100%;
@@ -713,6 +739,32 @@ class="btn-decline"
 onclick="openDeclineModal(<?= $row['queue_id']; ?>)">
 Unavailable
 </a>
+
+<select
+class="btn-transfer"
+onchange="if(this.value) {
+window.location='transfer.php?id=<?= $row['queue_id']; ?>&window='+this.value;
+}">
+
+<option value="">Proceed To</option>
+
+<?php if($_SESSION['window_no'] != 1){ ?>
+<option value="1">Admin 1</option>
+<?php } ?>
+
+<?php if($_SESSION['window_no'] != 2){ ?>
+<option value="2">Admin 2</option>
+<?php } ?>
+
+<?php if($_SESSION['window_no'] != 3){ ?>
+<option value="3">Admin 3</option>
+<?php } ?>
+
+<?php if($_SESSION['window_no'] != 4){ ?>
+<option value="4">Admin 4</option>
+<?php } ?>
+
+</select>
 
 <?php } ?>
 
@@ -1156,9 +1208,31 @@ function closePaymentModal(){
 
 </script>
 <script>
+
+function transferClient(queueId, targetWindow){
+
+    if(targetWindow === ""){
+        return;
+    }
+
+
+    if(confirm("Transfer this client to Admin " + targetWindow + "?")){
+
+        window.location.href =
+        "transfer.php?id="
+        + queueId
+        + "&window="
+        + targetWindow;
+
+    }
+
+}
+
+
 setInterval(function () {
     location.reload();
-}, 2000); // Refresh every 2 seconds
+}, 5000);
+
 </script>
 
 

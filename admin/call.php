@@ -31,6 +31,10 @@ WHERE
     )
 ");
 
+if (!$update) {
+    die("Queue update failed: " . mysqli_error($conn));
+}
+
 /* Another admin already called this client */
 if (mysqli_affected_rows($conn) == 0) {
     echo "<script>
@@ -47,18 +51,30 @@ FROM queue
 WHERE queue_id='$id'
 ");
 
+if (!$result) {
+    die("Client lookup failed: " . mysqli_error($conn));
+}
+
 $row = mysqli_fetch_assoc($result);
 
+if (!$row) {
+    die("Client not found.");
+}
+
 /* Save announcement */
-mysqli_query($conn, "
+$insert = mysqli_query($conn, "
 INSERT INTO announcements (client_name, window_no)
 VALUES (
-    '".$row['client_name']."',
+    '".mysqli_real_escape_string($conn, $row['client_name'])."',
     '$window'
 )
 ");
 
-/* Return to dashboard */
+if (!$insert) {
+    die("Announcement insert failed: " . mysqli_error($conn));
+}
+
+/* Redirect back to dashboard */
 header("Location: dashboard.php");
 exit;
 ?>

@@ -107,7 +107,9 @@ h1{
     text-align:left;
     white-space:nowrap;
 }
-
+audio{
+    display:none;
+}
 .client{
     color:#FFD700;
     font-size:46px;
@@ -199,26 +201,6 @@ h1{
 
 </div>
 
-<div class="next">
-
-
-
-<table id="nextTable">
-
-<?php
-
-while($row=mysqli_fetch_assoc($next))
-{
-
-echo "<tr><td>".htmlspecialchars($row['client_name'])."</td></tr>";
-
-}
-
-?>
-
-</table>
-
-</div>
 
 <script>
 
@@ -315,36 +297,60 @@ setInterval(loadMonitor,1000);
 
 </script>
 <script>
-    
-console.log("SpeechSynthesis:", window.speechSynthesis);
-console.log("Voices:", speechSynthesis.getVoices());
+let lastAnnouncementId = 0;
+
 async function checkAnnouncement() {
+    try {
+        const response = await fetch("announcement_data.php");
+        const data = await response.json();
 
-    const response = await fetch("announcement_data.php");
-    const data = await response.json();
+        if (!data) return;
 
-    console.log("Received:", data);
+        // Don't play the same announcement again
+        if (data.announcement_id == lastAnnouncementId) {
+            return;
+        }
 
-    if (!data) return;
+        lastAnnouncementId = data.announcement_id;
 
-   speechSynthesis.cancel();
+        const ding = document.getElementById("dingSound");
 
-setTimeout(() => {
-    const speech = new SpeechSynthesisUtterance(
-        `${data.client_name}, please proceed to Window ${data.window_no}.`
-    );
+        ding.pause();
+        ding.currentTime = 0;
 
-    speech.lang = "en-US";
-    speech.rate = 0.8;
-    speech.pitch = 1;
-    speech.volume = 1;
+        try {
+            await ding.play();
+            console.log("Ding played!");
+        } catch (err) {
+            console.error("Play Error:", err);
+        }
 
-    speechSynthesis.speak(speech);
-}, 200);
+    } catch (err) {
+        console.error("Announcement Error:", err);
+    }
 }
 
 checkAnnouncement();
-setInterval(checkAnnouncement,1000);
+setInterval(checkAnnouncement, 1000);
+</script>
+
+
+
+<audio id="dingSound" controls preload="auto">
+    <source src="/RD_Toledo/assets/ding.mp3" type="audio/mpeg">
+</audio>
+<script>
+const ding = document.getElementById("dingSound");
+
+ding.addEventListener("canplaythrough", () => {
+    console.log("Audio loaded successfully.");
+});
+
+ding.addEventListener("error", (e) => {
+    console.error("Audio failed to load:", e);
+});
+</script>
+<script>
 
 </script>
 </body>
