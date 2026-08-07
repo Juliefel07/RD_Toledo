@@ -1373,7 +1373,7 @@ document.getElementById("confirmTransferBtn").onclick = async function(){
 
 setInterval(function () {
     location.reload();
-}, 1000);
+}, 5000);
 
 </script>
 

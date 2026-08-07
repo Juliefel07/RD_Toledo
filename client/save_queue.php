@@ -2,17 +2,20 @@
 
 require_once("../includes/db.php");
 
-$name = trim($_POST['client_name']);
-$service = $_POST['service_id'];
-$senior = $_POST['senior_citizen'];
+$name = mysqli_real_escape_string($conn, trim($_POST['client_name']));
+$service = mysqli_real_escape_string($conn, $_POST['service_id']);
+$senior = mysqli_real_escape_string($conn, $_POST['senior_citizen']);
+
+$today = date("Y-m-d");
 
 
-// Get today's last queue number
+// Get today's last queue number only
 $result = mysqli_query($conn, "
-SELECT queue_number 
-FROM queue 
-ORDER BY queue_id DESC 
-LIMIT 1
+    SELECT queue_number
+    FROM queue
+    WHERE queue_date='$today'
+    ORDER BY queue_id DESC
+    LIMIT 1
 ");
 
 
@@ -31,39 +34,33 @@ if(mysqli_num_rows($result) > 0){
 }
 
 
-
 $queueNumber = "Q" . str_pad($next,3,"0",STR_PAD_LEFT);
-
-
 
 
 
 $sql = "
 INSERT INTO queue
 (
-queue_number,
-client_name,
-service_id,
-senior_citizen,
-status
+    queue_number,
+    queue_date,
+    client_name,
+    service_id,
+    senior_citizen,
+    status
 )
-
 VALUES
 (
-'$queueNumber',
-'$name',
-'$service',
-'$senior',
-'Waiting'
+    '$queueNumber',
+    '$today',
+    '$name',
+    '$service',
+    '$senior',
+    'Waiting'
 )
 ";
 
 
-
-
-
 if(mysqli_query($conn,$sql)){
-
 
     header(
         "Location: ticket.php?id=" . mysqli_insert_id($conn)
@@ -71,12 +68,9 @@ if(mysqli_query($conn,$sql)){
 
     exit;
 
-
 }else{
 
-
     echo mysqli_error($conn);
-
 
 }
 

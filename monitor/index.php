@@ -129,7 +129,7 @@ audio{
 <div class="left">
 
 <div class="section-title">
-NEXT CLIENTS
+NEXT CLIENT
 </div>
 
 <table id="nextTable">
