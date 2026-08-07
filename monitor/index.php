@@ -22,11 +22,10 @@ LIMIT 5
 <!DOCTYPE html>
 <html>
 <head>
-    <title>RD_Toledo Monitor</title>
 
+<title>RD_Toledo Monitor</title>
 
-
-    <style>
+<style>
 
 *{
     margin:0;
@@ -57,7 +56,6 @@ h1{
 .left{
     width:35%;
     padding:25px;
-    height: 150%;
     background:#0F315A;
     border-right:5px solid #FFD700;
 }
@@ -107,9 +105,7 @@ h1{
     text-align:left;
     white-space:nowrap;
 }
-audio{
-    display:none;
-}
+
 .client{
     color:#FFD700;
     font-size:46px;
@@ -118,7 +114,11 @@ audio{
     padding-left:40px;
 }
 
-    </style>
+audio{
+    display:none;
+}
+
+</style>
 
 </head>
 
@@ -126,164 +126,156 @@ audio{
 
 <div class="monitor">
 
-    <!-- LEFT SIDE -->
-    <div class="left">
+<div class="left">
 
-        <div class="section-title">
-            NEXT CLIENTS
-        </div>
+<div class="section-title">
+NEXT CLIENTS
+</div>
 
-        <table id="nextTable">
+<table id="nextTable">
 
-        <?php while($row=mysqli_fetch_assoc($next)){ ?>
+<?php while($row=mysqli_fetch_assoc($next)){ ?>
 
-            <tr>
-                <td><?= htmlspecialchars($row['client_name']); ?></td>
-            </tr>
+<tr>
+<td><?= htmlspecialchars($row['client_name']); ?></td>
+</tr>
 
-        <?php } ?>
+<?php } ?>
 
-        </table>
-
-    </div>
-
-    <!-- RIGHT SIDE -->
-    <div class="right">
-
-        <div class="section-title">
-            NOW SERVING
-        </div>
-
-        <table id="servingTable">
-
-            <tr>
-                <th>Window</th>
-                <th>Client</th>
-            </tr>
-
-            <?php
-            mysqli_data_seek($sql,0);
-
-            if(mysqli_num_rows($sql)>0){
-
-                while($current=mysqli_fetch_assoc($sql)){
-            ?>
-
-            <tr>
-
-                <td class="window">
-                    Window <?= htmlspecialchars($current['window_no']); ?>
-                </td>
-
-                <td class="client">
-                    <?= htmlspecialchars($current['client_name']); ?>
-                </td>
-
-            </tr>
-
-            <?php
-                }
-
-            }else{
-            ?>
-
-            <tr>
-                <td colspan="2" style="text-align:center;font-size:40px;">
-                    Waiting...
-                </td>
-            </tr>
-
-            <?php } ?>
-
-        </table>
-
-    </div>
+</table>
 
 </div>
 
+<div class="right">
 
-<script>
+<div class="section-title">
+NOW SERVING
+</div>
 
+<table id="servingTable">
 
+<tr>
+<th>Window</th>
+<th>Client</th>
+</tr>
 
+<?php
 
-</script>
+mysqli_data_seek($sql,0);
+
+if(mysqli_num_rows($sql)>0){
+
+while($current=mysqli_fetch_assoc($sql)){
+
+?>
+
+<tr>
+
+<td class="window">
+Window <?= htmlspecialchars($current['window_no']); ?>
+</td>
+
+<td class="client">
+<?= htmlspecialchars($current['client_name']); ?>
+</td>
+
+</tr>
+
+<?php
+
+}
+
+}else{
+
+?>
+
+<tr>
+<td colspan="2" style="text-align:center;font-size:40px;">
+Waiting...
+</td>
+</tr>
+
+<?php } ?>
+
+</table>
+
+</div>
+
+</div>
+
+<!-- Audio -->
+<audio id="dingSound" preload="auto">
+    <source src="/RD_Toledo/assets/ding.mp3" type="audio/mpeg">
+</audio>
+
 <script>
 
 async function loadMonitor(){
 
     const response = await fetch("monitor_data.php");
     const data = await response.json();
-
-    /* ==========================
-       NOW SERVING
-    ========================== */
+    console.log(data);
 
     const servingTable = document.getElementById("servingTable");
 
-    servingTable.innerHTML = `
+    servingTable.innerHTML=`
         <tr style="background:#003366;">
             <th style="padding:15px;">Window</th>
             <th style="padding:15px;">Now Serving</th>
         </tr>
     `;
 
-    if(data.serving.length==0){
+    if(data.serving.length===0){
 
-        servingTable.innerHTML += `
-            <tr>
-                <td colspan="2" style="padding:30px;font-size:40px;">
-                    Waiting...
-                </td>
-            </tr>
+        servingTable.innerHTML+=`
+        <tr>
+            <td colspan="2" style="padding:30px;font-size:40px;">
+                Waiting...
+            </td>
+        </tr>
         `;
 
     }else{
 
         data.serving.forEach(client=>{
 
-            servingTable.innerHTML += `
-                <tr>
-<td class="window">
-    Window ${client.window_no}
-</td>
+            servingTable.innerHTML+=`
+            <tr>
+                <td class="window">
+                    Window ${client.window_no}
+                </td>
 
-<td class="client">
-    ${client.client_name}
-</td>
-                </tr>
+                <td class="client">
+                    ${client.client_name}
+                </td>
+            </tr>
             `;
 
         });
 
     }
 
-
-    /* ==========================
-       NEXT CLIENTS
-    ========================== */
-
-    const nextTable = document.getElementById("nextTable");
+    const nextTable=document.getElementById("nextTable");
 
     nextTable.innerHTML="";
 
-    if(data.next.length==0){
+    if(data.next.length===0){
 
         nextTable.innerHTML=`
-            <tr>
-                <td>No waiting clients</td>
-            </tr>
+        <tr>
+            <td>No waiting clients</td>
+        </tr>
         `;
 
     }else{
 
         data.next.forEach(client=>{
 
-           nextTable.innerHTML += `
-<tr>
-    <td>${client.client_name}</td>
-</tr>
-`;
+            nextTable.innerHTML+=`
+            <tr>
+                <td>${client.client_name}</td>
+            </tr>
+            `;
 
         });
 
@@ -296,62 +288,109 @@ loadMonitor();
 setInterval(loadMonitor,1000);
 
 </script>
-<script>
-let lastAnnouncementId = 0;
 
+<script>
+const ding = document.getElementById("dingSound");
+
+// Load available voices
+let availableVoices = [];
+
+function loadVoices() {
+    availableVoices = speechSynthesis.getVoices();
+}
+
+loadVoices();
+
+if (speechSynthesis.onvoiceschanged !== undefined) {
+    speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// Speak function
+function speak(message) {
+
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(message);
+
+    utterance.lang = "en-US";
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    // Prefer a good English voice if available
+    const preferred =
+        availableVoices.find(v => v.name.includes("Microsoft David")) ||
+        availableVoices.find(v => v.name.includes("Google US English")) ||
+        availableVoices.find(v => v.lang === "en-US") ||
+        availableVoices[0];
+
+    if (preferred) {
+        utterance.voice = preferred;
+    }
+
+    speechSynthesis.speak(utterance);
+}
+
+// Check for new announcements
 async function checkAnnouncement() {
+
     try {
+
         const response = await fetch("announcement_data.php");
         const data = await response.json();
 
         if (!data) return;
 
-        // Don't play the same announcement again
-        if (data.announcement_id == lastAnnouncementId) {
-            return;
-        }
+        console.log("Announcement:", data);
 
-        lastAnnouncementId = data.announcement_id;
+        // Stop previous speech if still speaking
+        speechSynthesis.cancel();
 
-        const ding = document.getElementById("dingSound");
-
+        // Restart ding
         ding.pause();
         ding.currentTime = 0;
 
-        try {
-            await ding.play();
-            console.log("Ding played!");
-        } catch (err) {
-            console.error("Play Error:", err);
-        }
+        // Play ding
+const message =
+`${data.client_name}, please proceed to Window ${data.window_no}.`;
+
+ding.onended = function () {
+
+    console.log(message);
+
+    speak(message);
+
+};
+
+ding.currentTime = 0;
+await ding.play();
 
     } catch (err) {
+
         console.error("Announcement Error:", err);
+
     }
+
 }
 
-checkAnnouncement();
-setInterval(checkAnnouncement, 1000);
-</script>
-
-
-
-<audio id="dingSound" controls preload="auto">
-    <source src="/RD_Toledo/assets/ding.mp3" type="audio/mpeg">
-</audio>
-<script>
-const ding = document.getElementById("dingSound");
-
+// Audio loaded?
 ding.addEventListener("canplaythrough", () => {
-    console.log("Audio loaded successfully.");
+    console.log("Ding audio loaded.");
 });
 
 ding.addEventListener("error", (e) => {
-    console.error("Audio failed to load:", e);
+    console.error("Unable to load ding.mp3", e);
+});
+
+// Wait until page is fully loaded
+window.addEventListener("load", () => {
+
+    checkAnnouncement();
+
+    setInterval(checkAnnouncement, 1000);
+
 });
 </script>
-<script>
 
-</script>
 </body>
 </html>

@@ -16,31 +16,87 @@ if ($_SERVER["REQUEST_METHOD"] != "POST") {
 $id = intval($_POST['queue_id']);
 $window = intval($_SESSION['window_no']);
 
-/* Call the client */
-$update = mysqli_query($conn, "
-UPDATE queue
-SET
-    status='Serving',
-    window_no='$window',
-    called_at=NOW()
-WHERE
-    queue_id='$id'
-    AND (
-        status='Waiting'
-        OR status='Payment'
-    )
+/* Get current queue status */
+$check = mysqli_query($conn, "
+SELECT status, window_no
+FROM queue
+WHERE queue_id='$id'
 ");
+
+if (!$check) {
+    die("Queue lookup failed: " . mysqli_error($conn));
+}
+
+$current = mysqli_fetch_assoc($check);
+
+/*
+    CASE 1
+    Waiting or Payment
+    -> First call
+*/
+if (
+    $current['status'] == 'Waiting' ||
+    $current['status'] == 'Payment'
+) {
+
+    $update = mysqli_query($conn, "
+    UPDATE queue
+    SET
+        status='Serving',
+        window_no='$window',
+        called_at=NOW()
+    WHERE queue_id='$id'
+    ");
+
+}
+
+/*
+    CASE 2
+    Already Serving
+    -> Same admin presses Call again
+*/
+elseif (
+    $current['status'] == 'Serving'
+    &&
+    $current['window_no'] == $window
+) {
+
+    mysqli_query($conn, "
+    UPDATE queue
+    SET called_at = NOW()
+    WHERE queue_id='$id'
+    ");
+
+    $update = true;
+
+}
+
+/*
+    CASE 3
+    Another admin owns this client
+*/
+else {
+
+    echo "<script>
+        alert('This client has already been called by another window.');
+        window.location='dashboard.php';
+    </script>";
+    exit;
+
+}
 
 if (!$update) {
     die("Queue update failed: " . mysqli_error($conn));
 }
 
-/* Another admin already called this client */
-if (mysqli_affected_rows($conn) == 0) {
+/* If the update failed */
+if ($update !== true && mysqli_affected_rows($conn) == 0) {
+
     echo "<script>
             alert('This client has already been called by another window.');
             window.location='dashboard.php';
           </script>";
+
     exit;
 }
 

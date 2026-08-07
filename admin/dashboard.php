@@ -26,7 +26,6 @@ WHERE
     )
 ORDER BY q.queue_id ASC
 ");
-
 }else{
 
 $result = mysqli_query($conn,"
@@ -37,7 +36,12 @@ ON q.service_id=s.service_id
 WHERE
 (
     q.status='Waiting'
-    AND q.window_no='$window'
+    AND
+    (
+        q.window_no IS NULL
+        OR q.window_no = 0
+        OR q.window_no = '$window'
+    )
 )
 OR
 (
@@ -481,9 +485,7 @@ tr:hover{
 
     }
 
-    audio{
-    display:none;
-}
+    
     .top-buttons{
 
         width:100%;
@@ -692,8 +694,19 @@ switch($row['senior_citizen']){
 
 <?php
 if (
-    $row['status']=="Waiting" ||
-    ($window == 4 && $row['status']=="Payment")
+    $row['status']=="Waiting"
+    ||
+    (
+        $row['status']=="Serving"
+        &&
+        $row['window_no']==$_SESSION['window_no']
+    )
+    ||
+    (
+        $window == 4
+        &&
+        $row['status']=="Payment"
+    )
 ){
 ?>
 
@@ -742,9 +755,10 @@ Unavailable
 
 <select
 class="btn-transfer"
-onchange="if(this.value) {
-window.location='transfer.php?id=<?= $row['queue_id']; ?>&window='+this.value;
-}">
+onchange="openTransferModal(
+<?= $row['queue_id']; ?>,
+this.value
+)">
 
 <option value="">Proceed To</option>
 
@@ -791,8 +805,36 @@ MOBILE CARDS
 <div class="mobile-cards">
 
 <?php
-
 if($window == 4){
+
+$result = mysqli_query($conn,"
+SELECT q.*, s.service_name
+FROM queue q
+JOIN services s
+ON q.service_id = s.service_id
+WHERE
+(
+    q.status='Waiting'
+    AND
+    (
+        q.window_no IS NULL
+        OR q.window_no = 0
+        OR q.window_no = '4'
+    )
+)
+OR
+(
+    q.status='Payment'
+)
+OR
+(
+    q.status='Serving'
+    AND q.window_no='4'
+)
+ORDER BY q.queue_id ASC
+");
+
+}else{
 
 $mobileResult = mysqli_query($conn,"
 SELECT q.*, s.service_name
@@ -800,30 +842,22 @@ FROM queue q
 JOIN services s
 ON q.service_id = s.service_id
 WHERE
+(
     q.status='Waiting'
-    OR q.status='Payment'
-    OR (
-        q.status='Serving'
-        AND q.window_no='4'
+    AND
+    (
+        q.window_no IS NULL
+        OR q.window_no = 0
+        OR q.window_no = '$window'
     )
+)
+OR
+(
+    q.status='Serving'
+    AND q.window_no = '$window'
+)
 ORDER BY q.queue_id ASC
 ");
-
-}else{
-
-    $mobileResult = mysqli_query($conn,"
-    SELECT q.*, s.service_name
-    FROM queue q
-    JOIN services s
-    ON q.service_id=s.service_id
-    WHERE
-        q.status='Waiting'
-        OR (
-            q.status='Serving'
-            AND q.window_no='$window'
-        )
-    ORDER BY q.queue_id ASC
-    ");
 
 }
 
@@ -895,7 +929,21 @@ switch($row['senior_citizen']){
 <div class="card-actions">
 
 <?php
-if ($row['status']=="Waiting" || $row['status']=="Payment") {
+if (
+    $row['status']=="Waiting"
+    ||
+    (
+        $row['status']=="Serving"
+        &&
+        $row['window_no']==$_SESSION['window_no']
+    )
+    ||
+    (
+        $window == 4
+        &&
+        $row['status']=="Payment"
+    )
+) {
 ?>
 
 <form action="call.php" method="POST" style="display:inline; width:100%;">
@@ -914,23 +962,18 @@ if ($row['status']=="Waiting" || $row['status']=="Payment") {
 <?php } ?>
 
 <?php
-
 if(
     $row['status']=="Serving" &&
     $row['window_no']==$_SESSION['window_no']
 )
-
 {
-
 ?>
 
 <a
 href="complete.php?id=<?= $row['queue_id']; ?>"
 class="btn-complete"
 onclick="return confirm('Complete this transaction?');">
-
 Complete
-
 </a>
 
 <?php if($_SESSION['window_no'] != 4){ ?>
@@ -939,9 +982,7 @@ Complete
 href="payment.php?id=<?= $row['queue_id']; ?>"
 class="btn-payment"
 onclick="return confirm('Send this client to Window 4 for payment?');">
-
 Payment
-
 </a>
 
 <?php } ?>
@@ -950,10 +991,36 @@ Payment
 href="decline.php?id=<?= $row['queue_id']; ?>"
 class="btn-decline"
 onclick="return confirm('Mark this client as unavailable?');">
-
 Unavailable
-
 </a>
+
+<select
+class="btn-transfer"
+style="width:100%;"
+onchange="openTransferModal(
+<?= $row['queue_id']; ?>,
+this.value
+)">
+
+<option value="">Proceed To</option>
+
+<?php if($_SESSION['window_no'] != 1){ ?>
+<option value="1">Admin 1</option>
+<?php } ?>
+
+<?php if($_SESSION['window_no'] != 2){ ?>
+<option value="2">Admin 2</option>
+<?php } ?>
+
+<?php if($_SESSION['window_no'] != 3){ ?>
+<option value="3">Admin 3</option>
+<?php } ?>
+
+<?php if($_SESSION['window_no'] != 4){ ?>
+<option value="4">Admin 4</option>
+<?php } ?>
+
+</select>
 
 <?php } ?>
 </div>
@@ -1125,6 +1192,37 @@ Logout
     </div>
 
 </div>
+<!-- TRANSFER MODAL -->
+
+<div id="transferModal" class="modal">
+
+    <div class="modal-content">
+
+        <h2>Transfer Client</h2>
+
+        <p id="transferText">
+            Transfer this client?
+        </p>
+
+        <div class="modal-buttons">
+
+            <button
+                class="cancel-btn"
+                onclick="closeTransferModal()">
+                Cancel
+            </button>
+
+            <button
+                id="confirmTransferBtn"
+                class="confirm-btn">
+                Confirm
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 <script>
 
 
@@ -1144,24 +1242,35 @@ document.getElementById("logoutModal").style.display="none";
 
 
 
-window.onclick=function(event){
+window.onclick = function(event){
 
-    let logoutModal = document.getElementById("logoutModal");
-    let declineModal = document.getElementById("declineModal");
+    const logoutModal = document.getElementById("logoutModal");
+    const paymentModal = document.getElementById("paymentModal");
+    const declineModal = document.getElementById("declineModal");
+    const completeModal = document.getElementById("completeModal");
+    const transferModal = document.getElementById("transferModal");
 
-    if(event.target===logoutModal){
-
+    if(event.target === logoutModal){
         closeLogoutModal();
-
     }
 
-    if(event.target===declineModal){
+    if(event.target === paymentModal){
+        closePaymentModal();
+    }
 
+    if(event.target === declineModal){
         closeDeclineModal();
-
     }
 
-}
+    if(event.target === completeModal){
+        closeCompleteModal();
+    }
+
+    if(event.target === transferModal){
+        closeTransferModal();
+    }
+
+};
 function openDeclineModal(queueId){
 
     document.getElementById("confirmDeclineBtn").href =
@@ -1209,29 +1318,62 @@ function closePaymentModal(){
 </script>
 <script>
 
-function transferClient(queueId, targetWindow){
+let transferQueueId = null;
+let transferWindow = null;
 
-    if(targetWindow === ""){
+function openTransferModal(queueId, windowNo){
+
+    if(windowNo==""){
         return;
     }
 
+    transferQueueId = queueId;
+    transferWindow = windowNo;
 
-    if(confirm("Transfer this client to Admin " + targetWindow + "?")){
+    document.getElementById("transferText").innerHTML =
+        "Transfer this client to <strong>Admin "
+        + windowNo +
+        "</strong>?";
 
-        window.location.href =
+    document.getElementById("transferModal").style.display="flex";
+
+}
+
+function closeTransferModal(){
+
+    document.getElementById("transferModal").style.display="none";
+
+}
+
+document.getElementById("confirmTransferBtn").onclick = async function(){
+
+    const response = await fetch(
         "transfer.php?id="
-        + queueId
+        + transferQueueId
         + "&window="
-        + targetWindow;
+        + transferWindow
+    );
+
+    const result = await response.text();
+
+    if(result.trim()=="success"){
+
+        closeTransferModal();
+
+        location.reload();
+
+    }else{
+
+        alert(result);
 
     }
 
-}
+};
 
 
 setInterval(function () {
     location.reload();
-}, 5000);
+}, 1000);
 
 </script>
 

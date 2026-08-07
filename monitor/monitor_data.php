@@ -11,24 +11,24 @@ ORDER BY window_no ASC
 ");
 
 while($row=mysqli_fetch_assoc($sql)){
-    $serving[]=$row;
+    $serving[] = $row;
 }
 
-$next=[];
+$next = [];
 
-$sql=mysqli_query($conn,"
+$sql = mysqli_query($conn,"
 SELECT client_name
 FROM queue
 WHERE status='Waiting'
-ORDER BY queue_id ASC
+ORDER BY queue_id DESC
 LIMIT 5
 ");
 
 while($row=mysqli_fetch_assoc($sql)){
-    $next[]=$row;
+    $next[] = $row;
 }
 
 echo json_encode([
-    "serving"=>$serving,
-    "next"=>$next
+    "serving" => $serving,
+    "next" => $next
 ]);
