@@ -1,4 +1,5 @@
 <?php
+
 header('Content-Type: application/json');
 
 require_once("../includes/db.php");
@@ -6,7 +7,7 @@ require_once("../includes/db.php");
 $result = mysqli_query($conn, "
     SELECT *
     FROM announcements
-    ORDER BY announcement_id ASC
+    ORDER BY announcement_id DESC
     LIMIT 1
 ");
 
@@ -20,11 +21,6 @@ if ($result && mysqli_num_rows($result) > 0) {
         "window_no"       => $row["window_no"]
     ]);
 
-mysqli_query($conn, "
-DELETE FROM announcements
-WHERE announcement_id = {$row['announcement_id']}
-");
-
 } else {
 
     echo json_encode(null);
@@ -32,4 +28,5 @@ WHERE announcement_id = {$row['announcement_id']}
 }
 
 mysqli_close($conn);
+
 ?>

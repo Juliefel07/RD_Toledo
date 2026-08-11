@@ -55,6 +55,7 @@ h1{
 
 .left{
     width:35%;
+    height:150%;
     padding:25px;
     background:#0F315A;
     border-right:5px solid #FFD700;
@@ -207,7 +208,26 @@ Waiting...
 <audio id="dingSound" preload="auto">
     <source src="/RD_Toledo/assets/ding.mp3" type="audio/mpeg">
 </audio>
-
+<button
+    id="enableSound"
+    onclick="enableAudio()"
+    style="
+        position:fixed;
+        bottom:20px;
+        right:20px;
+        z-index:9999;
+        padding:15px 25px;
+        font-size:20px;
+        font-weight:bold;
+        background:#FFD700;
+        color:#000;
+        border:none;
+        border-radius:10px;
+        cursor:pointer;
+    "
+>
+    🔊 ENABLE SOUND
+</button>
 <script>
 
 async function loadMonitor(){
@@ -287,110 +307,314 @@ loadMonitor();
 
 setInterval(loadMonitor,1000);
 
-</script>
+</script><script>
 
-<script>
 const ding = document.getElementById("dingSound");
 
-// Load available voices
-let availableVoices = [];
+let lastAnnouncement = "";
+let audioEnabled = false;
+let isAnnouncing = false;
 
-function loadVoices() {
-    availableVoices = speechSynthesis.getVoices();
+
+// ==========================================
+// ENABLE SOUND
+// ==========================================
+
+async function enableAudio() {
+
+    try {
+
+        ding.volume = 1;
+        ding.currentTime = 0;
+
+        await ding.play();
+
+        ding.pause();
+        ding.currentTime = 0;
+
+        audioEnabled = true;
+
+        console.log("✅ AUDIO ENABLED");
+
+        const button = document.getElementById("enableSound");
+
+        if (button) {
+            button.style.display = "none";
+        }
+
+        // Check immediately
+        checkAnnouncement();
+
+    } catch (error) {
+
+        console.error("❌ AUDIO ENABLE FAILED:", error);
+
+        alert(
+            "Sound could not be enabled. Please check the ding.mp3 file."
+        );
+
+    }
+
 }
 
-loadVoices();
 
-if (speechSynthesis.onvoiceschanged !== undefined) {
-    speechSynthesis.onvoiceschanged = loadVoices;
-}
+// ==========================================
+// SPEAK
+// ==========================================
 
-// Speak function
 function speak(message) {
+
+    console.log("🔊 SPEAKING:", message);
 
     speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(message);
+    const utterance =
+        new SpeechSynthesisUtterance(message);
 
     utterance.lang = "en-US";
     utterance.rate = 0.9;
     utterance.pitch = 1;
     utterance.volume = 1;
 
-    // Prefer a good English voice if available
-    const preferred =
-        availableVoices.find(v => v.name.includes("Microsoft David")) ||
-        availableVoices.find(v => v.name.includes("Google US English")) ||
-        availableVoices.find(v => v.lang === "en-US") ||
-        availableVoices[0];
+    utterance.onstart = function () {
 
-    if (preferred) {
-        utterance.voice = preferred;
-    }
+        console.log("✅ Voice started");
+
+    };
+
+    utterance.onend = function () {
+
+        console.log("✅ Voice finished");
+
+        isAnnouncing = false;
+
+    };
+
+    utterance.onerror = function (event) {
+
+        console.error(
+            "❌ Speech error:",
+            event
+        );
+
+        isAnnouncing = false;
+
+    };
 
     speechSynthesis.speak(utterance);
+
 }
 
-// Check for new announcements
+
+// ==========================================
+// CHECK ANNOUNCEMENT
+// ==========================================
+
 async function checkAnnouncement() {
+
+    if (!audioEnabled) {
+
+        console.log("Audio not enabled yet.");
+
+        return;
+
+    }
+
+    if (isAnnouncing) {
+
+        return;
+
+    }
+
 
     try {
 
-        const response = await fetch("announcement_data.php");
+        const response = await fetch(
+            "announcement_data.php?_=" +
+            Date.now()
+        );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " + response.status
+            );
+
+        }
+
+
         const data = await response.json();
 
-        if (!data) return;
+        console.log(
+            "📢 ANNOUNCEMENT DATA:",
+            data
+        );
 
-        console.log("Announcement:", data);
 
-        // Stop previous speech if still speaking
-        speechSynthesis.cancel();
+        // No announcement
+        if (
+            !data ||
+            !data.client_name ||
+            !data.window_no
+        ) {
 
-        // Restart ding
+            return;
+
+        }
+
+
+        const announcementID =
+            String(data.announcement_id);
+
+
+        console.log(
+            "Announcement ID:",
+            announcementID
+        );
+
+
+        // Already announced
+        if (
+            announcementID === lastAnnouncement
+        ) {
+
+            return;
+
+        }
+
+
+        isAnnouncing = true;
+
+
+        const message =
+            data.client_name +
+            ", please proceed to Window " +
+            data.window_no +
+            ".";
+
+
+        console.log(
+            "🚨 NEW CALL:",
+            message
+        );
+
+
+        // ==================================
+        // PLAY DING
+        // ==================================
+
         ding.pause();
+
         ding.currentTime = 0;
 
-        // Play ding
-const message =
-`${data.client_name}, please proceed to Window ${data.window_no}.`;
 
-ding.onended = function () {
+ding.onended = null;
 
-    console.log(message);
+speak(message);
 
-    speak(message);
 
-};
+        ding.onerror = function () {
 
-ding.currentTime = 0;
-await ding.play();
+            console.error(
+                "❌ DING ERROR"
+            );
 
-    } catch (err) {
+            isAnnouncing = false;
 
-        console.error("Announcement Error:", err);
+        };
+
+
+        try {
+
+            await ding.play();
+
+            console.log(
+                "🔔 DING PLAYING"
+            );
+
+            // Remember only after play succeeds
+            lastAnnouncement =
+                announcementID;
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "❌ DING PLAY FAILED:",
+                error
+            );
+
+            isAnnouncing = false;
+
+        }
+
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "❌ ANNOUNCEMENT CHECK ERROR:",
+            error
+        );
+
+        isAnnouncing = false;
 
     }
 
 }
 
-// Audio loaded?
-ding.addEventListener("canplaythrough", () => {
-    console.log("Ding audio loaded.");
-});
 
-ding.addEventListener("error", (e) => {
-    console.error("Unable to load ding.mp3", e);
-});
+// ==========================================
+// AUDIO FILE EVENTS
+// ==========================================
 
-// Wait until page is fully loaded
-window.addEventListener("load", () => {
+ding.addEventListener(
+    "canplaythrough",
+    function () {
 
-    checkAnnouncement();
+        console.log(
+            "✅ ding.mp3 loaded"
+        );
 
-    setInterval(checkAnnouncement, 1000);
+    }
+);
 
-});
+
+ding.addEventListener(
+    "error",
+    function () {
+
+        console.error(
+            "❌ ding.mp3 FAILED TO LOAD"
+        );
+
+    }
+);
+
+
+// ==========================================
+// PAGE LOAD
+// ==========================================
+
+window.addEventListener(
+    "load",
+    function () {
+
+        console.log(
+            "✅ MONITOR LOADED"
+        );
+
+        setInterval(
+            checkAnnouncement,
+            1000
+        );
+
+    }
+);
+
 </script>
-
 </body>
 </html>
