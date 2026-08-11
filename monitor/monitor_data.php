@@ -7,7 +7,7 @@ $sql = mysqli_query($conn,"
 SELECT client_name, window_no
 FROM queue
 WHERE status='Serving'
-ORDER BY window_no ASC
+ORDER BY called_at DESC, queue_id DESC
 ");
 
 while($row=mysqli_fetch_assoc($sql)){
@@ -20,7 +20,7 @@ $sql = mysqli_query($conn,"
 SELECT client_name
 FROM queue
 WHERE status='Waiting'
-ORDER BY queue_id DESC
+ORDER BY queue_id ASC
 LIMIT 5
 ");
 

@@ -61,15 +61,12 @@ elseif (
     $current['window_no'] == $window
 ) {
 
-    mysqli_query($conn, "
-    UPDATE queue
-    SET called_at = NOW()
-    WHERE queue_id='$id'
-    ");
-
+    // Do NOT change called_at.
+    // This keeps the client's original position.
     $update = true;
-
 }
+
+
 
 /*
     CASE 3
